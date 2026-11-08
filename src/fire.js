@@ -30,6 +30,7 @@ function fireAt(id, t0, t, spec) {
     FS.scene = id; FS.time = t0; FS.lastPic = -1;
     api.setAll(spec.params(t0));
     api.resetFire();
+    api.S.time = 0;   // the shaders' noise and flicker run on this clock; every worker must start it equal
     if (spec.picture) { firePicture(spec.picture(t0)); FS.lastPic = t0; }
   }
   // advance in 1/30 s chunks (two simulation steps, one render each), updating params and picture

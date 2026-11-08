@@ -7,7 +7,7 @@ const MAIN = layer(), AUX = layer(), DROSTE = [layer(), layer(), layer(), layer(
 const BROWSER = { x: 30, y: 16, w: 540, h: 330 };
 const PAGE_VIEW = { x: BROWSER.x + 6, y: BROWSER.y + TITLE_H + 2 + 37, w: BROWSER.w - 12, h: BROWSER.h - TITLE_H - 4 - 53 };
 const DIALER = { x: 384, y: 214, w: 210, h: 122 };
-const CLOCKW = { x: 506, y: 14, w: 110, h: 112 };
+const CLOCKW = { x: 430, y: 18, w: 140, h: 124 };
 
 // ---------------------------------------------------------------- keyframes
 function keyed(keys, t) {
@@ -56,15 +56,23 @@ function pageShot(plan, t) {
   const cam = [lerp(cPrev[0], cNow[0], k), lerp(cPrev[1], cNow[1], k) + (prev ? (sNow - scroll) * 0 : 0), lerp(cPrev[2], cNow[2], k)];
   const loadT = plan[p0].t, load = plan[p0].load ?? 0.8;
   const reveal = clamp((t - loadT) / load);
-  return { page, scroll, cam, reveal, loading: reveal < 1, url: page.url, title: 'AWeb: ' + page.title, t0: loadT };
+  return { page, scroll, cam, reveal, loading: reveal < 1, url: page.url, title: 'AWeb: ' + page.title, t0: loadT, key: cur.key, focus: cur.focus, since: t - cur.t };
 }
 function browserWith(g, shot, t, o = {}) {
-  return drawBrowser(g, {
+  const r = drawBrowser(g, {
     ...BROWSER, ...o, active: o.active !== false, title: o.title || shot.title, url: o.url !== undefined ? o.url : shot.url,
     status: o.status || (shot.loading ? `Document: ${Math.floor(shot.reveal * 100)}% of 14K` : 'Document: Done.'),
     progress: shot.loading ? shot.reveal : undefined, busy: shot.loading ? t : 0,
     page: (g2, x, y, w, h) => drawPage(g2, shot.page, x, y, w, h, t, shot.scroll, shot.reveal),
   });
+  // the line being sung: a blinking marquee frame around its banner
+  if (shot.focus && shot.key && !shot.loading) {
+    const fr = pageRectOnScreen(shot, shot.key), on = Math.floor(t * 10) % 2;
+    g.save(); g.beginPath(); g.rect(PAGE_VIEW.x, PAGE_VIEW.y, PAGE_VIEW.w, PAGE_VIEW.h); g.clip();
+    frameRect(g, fr.x - 3, fr.y - 3, fr.w + 6, fr.h + 6, on ? '#ffff00' : '#ff0000'); frameRect(g, fr.x - 2, fr.y - 2, fr.w + 4, fr.h + 4, on ? '#ff0000' : '#ffff00');
+    g.restore();
+  }
+  return r;
 }
 function pageRectOnScreen(shot, key) {
   const r = blockRect(shot.page, key, PAGE_VIEW.w);
@@ -147,22 +155,22 @@ scene(T.click1, T.strange, (g, t) => {
     drawClock(g, { ...CLOCKW, minutes: mins, seconds: (t - T.y1998 + 7) % 60, date: '07-Nov-98', active: true });
   }
   pointer(g, BUTTON_POS.x + 3 + (t - 21.6) * 2, BUTTON_POS.y + 14, t < 29 ? 'busy' : 'arrow');
-  const cam = keyed([[T.click1, BUTTON_POS.x + 4, BUTTON_POS.y + 20, 2.6], [22.3, ...FULL], [24, ...FULL], [26.5, DIALER.x + 105, DIALER.y + 50, 2.2],
-    [32.5, DIALER.x + 105, DIALER.y + 60, 2.0], [34.3, ...FULL], [T.y1998, ...FULL], [T.y1998 + 0.45, CLOCKW.x + 55, CLOCKW.y + 58, 2.4], [T.strange - 0.4, CLOCKW.x + 55, CLOCKW.y + 58, 2.6], [T.strange, ...FULL]], t);
+  const cam = keyed([[T.click1, BUTTON_POS.x + 4, BUTTON_POS.y + 20, 2.6], [22.3, ...FULL], [23.4, ...FULL], [24.1, DIALER.x + 105, DIALER.y + 56, 2.2],
+    [33.9, DIALER.x + 105, DIALER.y + 62, 2.4], [34.5, ...FULL], [T.y1998, ...FULL], [T.y1998 + 0.45, CLOCKW.x + 70, CLOCKW.y + 62, 2.3], [T.strange - 0.4, CLOCKW.x + 70, CLOCKW.y + 62, 2.5], [T.strange, ...FULL]], t);
   return { cam };
 });
 
 // 37.96 – 56.16: the strange window, the banners, the GPU page
 const V1_PLAN = [
   { t: 38.7, page: 'home', key: null, cam: 'page', load: 1.9 },
-  { t: T.flashing, page: 'home', key: 'flashing1', zmax: 1.3 },
-  { t: T.flashing + 1.15, page: 'home', key: 'flashing2', zmax: 1.3 },
-  { t: T.advertising, page: 'home', key: 'adv1', zmax: 1.3 },
-  { t: T.advertising + 0.95, page: 'home', key: 'adv2', zmax: 1.3 },
-  { t: T.patch, page: 'home', key: 'patch', zmax: 1.32, move: 0.18 },
-  { t: T.keys, page: 'home', key: 'keys', zmax: 1.32, move: 0.18 },
-  { t: T.replaced, page: 'home', key: 'replaced', zmax: 1.32, move: 0.18 },
-  { t: T.gpus, page: 'home', key: 'gpus', zmax: 1.32, move: 0.18 },
+  { t: T.flashing - 0.15, page: 'home', key: 'flashing1', zmax: 1.3, focus: true },
+  { t: T.flashing + 1.0, page: 'home', key: 'flashing2', zmax: 1.3, focus: true },
+  { t: T.advertising - 0.15, page: 'home', key: 'adv1', zmax: 1.3, focus: true },
+  { t: T.advertising + 0.8, page: 'home', key: 'adv2', zmax: 1.3, focus: true },
+  { t: T.patch - 0.15, page: 'home', key: 'patch', zmax: 1.32, move: 0.16, focus: true },
+  { t: T.keys - 0.15, page: 'home', key: 'keys', zmax: 1.32, move: 0.16, focus: true },
+  { t: T.replaced - 0.15, page: 'home', key: 'replaced', zmax: 1.32, move: 0.16, focus: true },
+  { t: T.gpus - 0.15, page: 'home', key: 'gpus', zmax: 1.32, move: 0.16, focus: true },
   { t: 52.6, page: 'gpus', key: null, cam: [BROWSER.x + BROWSER.w / 2, 150, 1.45], load: 0.7 },
   { t: T.what, page: 'gpus', key: null, cam: 'page', move: 0.8 },
   { t: 55.0, page: 'gpus', scroll: 60, cam: 'page', move: 1.0 },
@@ -221,8 +229,10 @@ scene(T.modem, T.ch1, (g, t) => {
   const cg = [BROWSER.x + dodge[0] + 9, BROWSER.y + dodge[1] + 5];
   const p = t < T.close ? [430, 250] : keyed([[T.close, 430, 250], [61.85, BROWSER.x + 9, BROWSER.y + 5], [62.2, BROWSER.x + 12, BROWSER.y + 7], [62.9, cg[0], cg[1]], [63.3, cg[0] - 2, cg[1]]], t);
   if (t >= T.date26) pointer(g, p[0], p[1]);
-  const cam = keyed([[T.modem, DIALER.x + 105, DIALER.y + 61, 2.0], [T.date26 - 0.25, DIALER.x + 105, DIALER.y + 61, 2.1], [T.date26, ...shot.cam],
-    [T.close - 0.2, ...shot.cam], [T.close + 0.3, ...FULL]], t);
+  const fr = pageRectOnScreen(shot, 'updated');
+  const yearCam = [PAGE_VIEW.x + PAGE_VIEW.w / 2 + 90, fr.y + 8, 3.2];
+  const cam = keyed([[T.modem, DIALER.x + 105, DIALER.y + 61, 2.0], [T.date26 - 0.25, DIALER.x + 105, DIALER.y + 61, 2.1], [T.date26, ...yearCam],
+    [T.close - 0.3, ...yearCam], [T.close + 0.2, 110, 70, 1.9], [T.another - 0.2, 110, 70, 1.9], [T.another + 0.3, ...FULL]], t);
   return { cam };
 });
 
@@ -483,10 +493,14 @@ scene(T.power, T.fc, (g, t) => {
 });
 
 // 177.64 – 202.44: the final chorus burns
-const GOOD_NIGHT = layer();
+const GOOD_NIGHT = layer(), GN_SMALL = layer();
 function goodNightPicture(t) {
-  const g = GOOD_NIGHT.g; fill(g, 0, 0, LW, LH, '#000');
+  // the same framing as the cursor scene before it (camera at 2.4× on the middle of the screen)
+  const g = GN_SMALL.g; fill(g, 0, 0, LW, LH, '#000');
   const s = 'Good night.'; text(g, 320 - textW(s) / 2, 176, s, '#ffa997');
+  const z = 2.4, sw = LW / z, sh = LH / z;
+  fill(GOOD_NIGHT.g, 0, 0, LW, LH, '#000');
+  GOOD_NIGHT.g.drawImage(GN_SMALL.c, 320 - sw / 2, 180 - sh / 2, sw, sh, 0, 0, LW, LH);
   return GOOD_NIGHT.c;
 }
 const FIREPIC = layer();
@@ -527,7 +541,7 @@ function finalPicture(t) {
 scene(T.fc, T.seen2 - 0.8, (g, t) => {
   const fireC = fireAt('final', T.fc, t, {
     params: tt => ({
-      ...FireCore_defaults(), source: tt < T.boundaries ? 'none' : 'floor', fuelRate: tt < T.fcend ? (tt < T.boundaries ? 0 : 0.8 + clamp((tt - T.boundaries) / 8) * 0.6) : Math.max(0, 1.2 - (tt - T.fcend) * 0.6),
+      ...FireCore_defaults(), source: tt < T.boundaries ? 'none' : 'floor', fuelRate: tt < T.fcend ? (tt < T.boundaries ? 0 : 0.9 + clamp((tt - T.boundaries) / 9) * 1.1) : Math.max(0, 1.2 - (tt - T.fcend) * 0.6),
       sourceHeight: 0.04 + clamp((tt - T.boundaries) / 10) * 0.05, pictureFuel: tt < T.fcend ? (tt < T.boundaries ? 1.6 : (tt > T.fcb && tt < T.goodbye ? 1.6 : 0.22)) : 0,
       palette: 'poster', opacity: 0.6, cooling: 2.6, picBright: tt > T.fcend ? Math.max(0, 1 - (tt - T.fcend) * 0.5) : (tt > T.nobody && tt < T.fcb ? 0.55 : 1), warmth: 0.35,
       smokeYield: tt > T.nobody && tt < T.fcb ? 1.0 : 0.35, grain: 0.15, vignette: 0.35, scorch: 0.5, letterbox: false, exposure: tt > T.fcend ? Math.max(0.1, 1.2 - (tt - T.fcend) * 0.35) : 1.2,

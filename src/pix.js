@@ -105,7 +105,8 @@ function iconCanvas(name, scale = 2, sel = false) {
   px.forEach((row, y) => row.forEach((col, x) => {
     if (!col) return;
     let cc = col;
-    if (sel) { const v = parseInt(col.slice(1), 16) ^ 0xffffff; cc = '#' + v.toString(16).padStart(6, '0'); }
+    if (sel && FULL_COLOUR_ICONS.has(name)) { const v = parseInt(col.slice(1), 16); cc = '#' + [16, 8, 0].map(b => Math.floor(((v >> b) & 255) * 0.55).toString(16).padStart(2, '0')).join(''); }
+    else if (sel) { const v = parseInt(col.slice(1), 16) ^ 0xffffff; cc = '#' + v.toString(16).padStart(6, '0'); }
     L.g.fillStyle = cc; L.g.fillRect(x * scale, y * scale, scale, scale);
   }));
   c = L.c; ICONCACHE.set(key, c); return c;
