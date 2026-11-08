@@ -255,15 +255,20 @@ function drawRewriter(g, t, t0, x, y, w, h, rate = 1.6) {
 // 65.78 – 88.9: chorus 1 (and the same skeleton for chorus 2)
 function chorus(g, t, C) {
   const R = C.R;   // this chorus's line times
-  drawDesk(g, { button: { alpha: 1, sel: true }, mem: memAt(t), swell: { 'RAM Disk': 1 + Math.max(0, t - R.door) * (C.n2 ? 1.6 : 0.9) },
+  drawDesk(g, { button: { alpha: 1, sel: true }, mem: memAt(t), swell: { 'RAM Disk': 1 + Math.max(0, t - R.door) * (C.n2 ? 1.8 : 1.3) },
     title: undefined });
   if (C.droste) drawDrosteBrowser(g, t, 3, C);
-  else browserWith(g, pageShot([{ t: C.base - 1, page: 'rsi', key: null, cam: 'page', load: 0 }], t), t, { active: false });
+  else browserWith(g, pageShot([{ t: C.base - 1, page: 'home', scroll: 140, key: null, cam: 'page', load: 0 }], t), t, { active: false });
   drawDialer(g, dialerAt(t, { lines: leakLines(t, R.leak), title: 'Modem: 33600 bps (?)', rx: 1, tx: Math.floor(t * 12) % 2 }));
   let cam = FULL;
   // RSI! RSI!
-  const shout = (t1, x, y) => { if (t > t1) { const r = popupRect('v-rsi', x, y); if (t < t1 + 0.18) zoomBox(g, { x: x + r.w / 2, y: y + r.h / 2, w: 4, h: 4 }, r, (t - t1) / 0.18); else drawPopup(g, 'v-rsi', x, y, t, t1, 'AWeb: RSI!', true); } };
-  if (t < R.rewrite) { if (C.droste) { shout(R.ch, 8, 262); shout(R.rsi2, 150, 286); } else { shout(R.ch, 40, 60); shout(R.rsi2, 120, 170); } }
+  let lastShout = null;
+  const shout = (t1, x, y) => { if (t > t1) { const r = popupRect('v-rsi', x, y); lastShout = r; if (t < t1 + 0.18) zoomBox(g, { x: x + r.w / 2, y: y + r.h / 2, w: 4, h: 4 }, r, (t - t1) / 0.18); else drawPopup(g, 'v-rsi', x, y, t, t1, 'AWeb: RSI!', true); } };
+  if (t < R.rewrite) {
+    if (C.droste) { shout(R.ch, 8, 262); shout(R.rsi2, 150, 286); } else { shout(R.ch, 20, 40); shout(R.rsi2, 130, 200); }
+    // the camera jumps to each shout
+    if (lastShout) cam = frameRect_(lastShout, 8, 1.3);
+  }
   // it's rewriting itself
   if (t >= R.rewrite && t < R.ten) {
     drawRewriter(g, t, R.rewrite, 60, 30, 520, 140);
@@ -273,7 +278,7 @@ function chorus(g, t, C) {
   if (t >= R.ten && t < R.b) {
     const k = t - R.ten;
     const n = k < 1.4 ? 1 : k < 2.7 ? 10 : Math.min(C.n2 ? 120 : 60, Math.floor(10 * Math.pow(2, (k - 2.7) * 2.2)));
-    popupStorm(g, t, n, C.seed, R.ten);
+    popupStorm(g, t, n, C.seed, R.ten, { right: 76 });
     // something's growing behind the door: the title bar and the swelling RAM disk
     if (t > R.door) cam = keyed([[R.door, ...FULL], [R.door + 0.5, 470, 60, 1.6], [R.b - 0.3, 560, 90, 1.9]], t);
   }
@@ -421,16 +426,24 @@ function tileStorm(g, t) {
   drawDesk(g, { mem: memAt(t) });
   drawDesk(AUX.g, { mem: memAt(t) });
   drawDrosteBrowser(AUX.g, t, 1);
-  const n = k < 1.0 ? 1 : k < 2.2 ? 10 : k < 3.4 ? 100 : 1000;
-  const cols = Math.ceil(Math.sqrt(n * LW / LH * 9 / 16 * 16 / 9)), rows = Math.ceil(n / cols);
-  const tw = LW / cols, th = (LH - TITLE_H) / rows;
+  // one, then ten, then a hundred, then a thousand copies of the screen
+  const [cols, rows] = k < 0.64 ? [1, 1] : k < 1.42 ? [5, 2] : k < 1.94 ? [10, 10] : [40, 25];
+  const n = cols * rows, tw = LW / cols, th = (LH - TITLE_H) / rows;
   for (let i = 0; i < n; i++) {
     const x = (i % cols) * tw, y = TITLE_H + Math.floor(i / cols) * th;
     const slip = Math.sin(t * 3 + i) * (n > 10 ? 0 : 0);
     g.drawImage(AUX.c, Math.round(x + slip), Math.round(y), Math.ceil(tw), Math.ceil(th));
   }
+  // something's growing behind the door: the RAM Disk swells out from behind the copies
+  if (t > T.ch2door) {
+    const e = easeIn(clamp((t - T.ch2door) / (T.ch2b - T.ch2door))), sz = Math.round(32 + e * 300);
+    const cx = lerp(604, 330, e), cy = lerp(116, 190, e);
+    g.drawImage(iconCanvas('ram', 2), Math.round(cx - sz / 2), Math.round(cy - sz / 2), sz, sz);
+    const lab = `RAM Disk  ${fmtNum(Math.pow(10, 3 + e * 9))} bytes`;
+    fill(g, cx - textW(lab) / 2 - 1, cy + sz / 2 + 2, textW(lab) + 2, 9, '#000'); text(g, cx - textW(lab) / 2, cy + sz / 2 + 2, lab, '#fff');
+  }
   drawScreenTitle(g, `Workbench Screen   ${fmtNum(memAt(t)[0])} graphics mem   ${fmtNum(memAt(t)[1])} other mem`);
-  return { cam: FULL, punch: [T.ch2ten, T.ch2ten + 1.0, T.ch2ten + 2.2, T.ch2ten + 3.4].some(x => t > x && t < x + 0.1) ? 1 : 0 };
+  return { cam: FULL, punch: [T.ch2ten, T.ch2ten + 0.64, T.ch2ten + 1.42, T.ch2ten + 1.94].some(x => t > x && t < x + 0.1) ? 1 : 0 };
 }
 
 // 145.6 – 163.52: the bridge: new versions, then no more human input
