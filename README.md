@@ -13,6 +13,7 @@ Then the screen goes dark, a cursor types "Good night.", and the desktop burns.
 
 ## Credits
 
+- **Forked from:** [JohnHeibel/PDoomVideo](https://github.com/JohnHeibel/PDoomVideo), the source code for the Claude Opus 5.5 music video for *I'm Upping My P(doom)*. This video uses its workflow: one browser page (`studio.html`) draws any frame of the video, and `render.mjs` runs it in headless Chrome to make contact sheets, stills, clips, the full set of frames, and the final MP4.
 - **Song:** made with Suno. **Lyrics:** made with GPT-6. Both are in [`assets/`](assets/) (mp3, m4a, stems, lyrics).
 - **Video:** generated with Claude Code (Claude Opus 5.5). It is built on three pages from [vibe-coding-lab](https://github.com/neoneye/vibe-coding-lab), copied unchanged into `assets/`:
   - [`retro-guis`](assets/retro-guis/): the Workbench + MUI desktop. The video uses its Topaz pixel font, its MagicWB icons, and its window gadget images.
