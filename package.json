@@ -1,17 +1,11 @@
 {
-  "name": "pdoomvideo",
+  "name": "rsi-music-video",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
+  "private": true,
+  "type": "module",
+  "description": "Music video for 'Job Replacement', drawn on an isometric triangle lattice",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "p5": "^2.3.3",
-    "p5.brush": "^2.2.3",
     "puppeteer-core": "^25.11.0"
   }
 }
