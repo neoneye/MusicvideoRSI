@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RSI studio</title>
+<style>
+  html, body { margin: 0; background: #111; color: #ddd; font: 13px system-ui, sans-serif; }
+  main { padding: 12px; display: grid; gap: 8px; }
+  #out { width: min(100%, 1280px); aspect-ratio: 16 / 9; height: auto; background: #000; image-rendering: pixelated; }
+  .bar { display: flex; gap: 10px; align-items: center; max-width: 1280px; }
+  #scrub { flex: 1; }
+  #tt { font-variant-numeric: tabular-nums; min-width: 150px; }
+  button { background: #222; color: #ddd; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <canvas id="out" width="1920" height="1080"></canvas>
+  <div class="bar"><button id="play">play</button><input id="scrub" type="range" min="0" max="226.8" step="0.0333" value="0"><span id="tt">loading…</span></div>
+  <audio id="au" src="assets/Recursive%20Self%20Improvement%20(best).mp3" preload="auto"></audio>
+</main>
+<script src="src/vendor.js"></script>
+<script src="src/pix.js"></script>
+<script src="src/lyrics.js"></script>
+<script src="src/wb.js"></script>
+<script src="src/banners.js"></script>
+<script src="src/pages.js"></script>
+<script src="src/fire.js"></script>
+<script src="src/director.js"></script>
+<script src="src/thumbs.js"></script>
+<script>
+(async () => {
+  const cv = document.getElementById('out'), ctx = cv.getContext('2d');
+  await loadVendors();
+  await loadCssImages(await fetchText('assets/retro-guis/index.html'));
+  await document.fonts.ready;
+  const params = new URLSearchParams(location.search);
+  window.drawAt = t => { const t0 = performance.now(); drawFrame(ctx, t); return performance.now() - t0; };
+  window.renderAt = (t, type = 'image/jpeg', q = .92) => { drawAt(t); return cv.toDataURL(type, q); };
+  window.renderSheet = (ts, cols = 3, w = 640) => {
+    const h = Math.round(w * 9 / 16), rows = Math.ceil(ts.length / cols), sh = document.createElement('canvas');
+    sh.width = cols * w; sh.height = rows * h; const sc = sh.getContext('2d'), ms = [];
+    ts.forEach((t, n) => {
+      ms.push(Math.round(drawAt(t)));
+      sc.drawImage(cv, (n % cols) * w, Math.floor(n / cols) * h, w, h);
+      sc.fillStyle = '#000a'; sc.fillRect((n % cols) * w, Math.floor(n / cols) * h, 74, 22);
+      sc.fillStyle = '#fff'; sc.font = '15px monospace'; sc.fillText(t.toFixed(2), (n % cols) * w + 6, Math.floor(n / cols) * h + 16);
+    });
+    return { url: sh.toDataURL('image/jpeg', .9), ms };
+  };
+  window.renderThumb = i => { const T = THUMBS[i], c = document.createElement('canvas'); c.width = 1280; c.height = 720; T.draw(c.getContext('2d'), c); return { url: c.toDataURL('image/png'), name: T.name }; };
+  window.ready = true;
+
+  if (!params.has('render')) {
+    const au = document.getElementById('au'), sc = document.getElementById('scrub'), tt = document.getElementById('tt');
+    let t = +(params.get('t') || 0);
+    const show = () => { const ms = drawAt(t); sc.value = t; tt.textContent = `${t.toFixed(2)} s  ${ms.toFixed(0)} ms`; };
+    sc.oninput = () => { t = +sc.value; au.currentTime = t; show(); };
+    document.getElementById('play').onclick = () => au.paused ? au.play() : au.pause();
+    const loop = () => { if (!au.paused) { t = au.currentTime; show(); } requestAnimationFrame(loop); };
+    au.currentTime = t; show(); loop();
+  }
+})();
+</script>
+</body>
+</html>

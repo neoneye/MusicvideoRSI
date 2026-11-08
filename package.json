@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Music video for 'Job Replacement', drawn on an isometric triangle lattice",
+  "description": "Music video for RSI (The Button): an Amiga Workbench in 1998 browsing ad banners from 2026",
   "license": "ISC",
   "dependencies": {
     "puppeteer-core": "^25.11.0"
