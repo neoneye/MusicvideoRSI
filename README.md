@@ -35,6 +35,7 @@ Then the screen goes dark, a cursor types "Good night.", and the desktop burns.
 | [`src/thumbs.js`](src/thumbs.js) | Three YouTube thumbnail candidates |
 | [`docs/superpowers/specs/2026-11-08-rsi-music-video-design.md`](docs/superpowers/specs/2026-11-08-rsi-music-video-design.md) | The design and the shot list |
 | [`docs/timing/`](docs/timing/) | Word timings (faster-whisper on the lead vocal stem) and the beat grid |
+| [`prompts/`](prompts/) | Every prompt given to Claude while making the video, verbatim and in order |
 
 Every frame is drawn at 640×360 and scaled 3× with hard pixels to 1920×1080, with no CRT effect. The exception is the fire, which renders in HD over the pixels.
 
